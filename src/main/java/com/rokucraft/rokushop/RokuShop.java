@@ -55,15 +55,26 @@ public final class RokuShop extends JavaPlugin {
 
     public void loadShops() {
         shops = new HashMap<>();
-        File[] shopFiles = new File(getDataFolder(), "shops").listFiles();
-        if (shopFiles == null) {
-            this.getLogger().log(Level.SEVERE, "Unable to load configuration");
-            this.getPluginLoader().disablePlugin(this);
+        loadShopsInFile(new File(getDataFolder(), "shops"));
+    }
+
+    private void loadShopsInFile(File file) {
+        if (file.isDirectory()) {
+            File[] subFiles = file.listFiles();
+            if (subFiles == null) {
+                this.getLogger().warning("Cannot read files in directory " + file.getName());
+                return;
+            }
+            for (File subFile : subFiles) {
+                loadShopsInFile(subFile);
+            }
             return;
         }
-        for (File shopFile : shopFiles) {
-            loadShop(shopFile);
+        if (file.isFile()) {
+            loadShop(file);
+            return;
         }
+        this.getLogger().warning("Cannot load shops in " + file.getName());
     }
 
     private void loadShop(File file) {
