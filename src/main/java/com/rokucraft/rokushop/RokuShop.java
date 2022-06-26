@@ -3,6 +3,7 @@ package com.rokucraft.rokushop;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
 import cloud.commandframework.paper.PaperCommandManager;
 import com.rokucraft.rokushop.commands.OpenCommand;
+import com.rokucraft.rokushop.commands.ReloadCommand;
 import com.rokucraft.rokushop.commands.parsers.ShopParser;
 import com.rokucraft.rokushop.entities.Shop;
 import com.rokucraft.rokushop.serializers.ItemStackSerializer;
@@ -47,6 +48,7 @@ public final class RokuShop extends JavaPlugin {
         manager.parserRegistry().registerParserSupplier(TypeToken.get(Shop.class), options -> new ShopParser<>(this));
         var builder = manager.commandBuilder("rokushop");
         manager.command(new OpenCommand(builder, manager, this).command());
+        manager.command(new ReloadCommand(builder, this).command());
         loadShops();
         PaperInterfaceListeners.install(this);
     }
