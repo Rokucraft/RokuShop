@@ -5,3 +5,5 @@ api-version: 1.18
 authors: [ Aikovdp ]
 description: A shop plugin for Rokucraft
 website: https://www.rokucraft.com
+depend:
+  - Vault
