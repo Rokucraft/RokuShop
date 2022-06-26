@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
@@ -27,11 +29,27 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     implementation("cloud.commandframework:cloud-paper:1.7.0")
     implementation("org.spongepowered:configurate-yaml:4.1.2")
-    implementation("net.kyori:adventure-serializer-configurate4:4.11.0")
+    implementation("net.kyori:adventure-serializer-configurate4:4.11.0") {
+        transitive(false)
+    }
     implementation("org.incendo.interfaces:interfaces-paper:1.0.0-SNAPSHOT")
 }
 
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+    target = tasks.shadowJar
+    prefix = "${rootProject.group}.${rootProject.name.toLowerCase()}.libs"
+}
+
 tasks {
+    build {
+        dependsOn(shadowJar)
+    }
+
+    shadowJar {
+        archiveClassifier.set(null)
+        dependsOn(tasks.relocateShadowJar)
+    }
+
     runServer {
         minecraftVersion("1.18.2")
     }
