@@ -25,11 +25,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-    implementation("cloud.commandframework:cloud-paper:1.7.0")
+    implementation("cloud.commandframework:cloud-paper:1.8.3")
     implementation("org.spongepowered:configurate-yaml:4.1.2")
-    implementation("net.kyori:adventure-serializer-configurate4:4.11.0") {
+    implementation("net.kyori:adventure-serializer-configurate4:4.13.1") {
         transitive(false)
     }
     implementation("org.incendo.interfaces:interfaces-paper:1.0.0-SNAPSHOT")
@@ -46,12 +46,11 @@ tasks {
     }
 
     shadowJar {
-        archiveClassifier.set(null)
         dependsOn(tasks.relocateShadowJar)
     }
 
     runServer {
-        minecraftVersion("1.18.2")
+        minecraftVersion("1.19.4")
     }
 }
 
