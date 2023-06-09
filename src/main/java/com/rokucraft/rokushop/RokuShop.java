@@ -19,7 +19,8 @@ import org.incendo.interfaces.paper.PaperInterfaceListeners;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -28,6 +29,8 @@ public final class RokuShop extends JavaPlugin {
     private PaperCommandManager<CommandSender> manager;
     private static Economy econ;
     private Map<String, Shop> shops;
+    private static final PathMatcher YAML_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.{yml,yaml}");
+
     @Override
     public void onEnable() {
         setupEconomy();
@@ -55,31 +58,31 @@ public final class RokuShop extends JavaPlugin {
 
     public void loadShops() {
         shops = new HashMap<>();
-        loadShopsInFile(new File(getDataFolder(), "shops"));
+        loadShopsInFile(getDataFolder().toPath().resolve("shops"));
     }
 
-    private void loadShopsInFile(File file) {
-        if (file.isDirectory()) {
-            File[] subFiles = file.listFiles();
-            if (subFiles == null) {
-                this.getLogger().warning("Cannot read files in directory " + file.getName());
-                return;
-            }
-            for (File subFile : subFiles) {
-                loadShopsInFile(subFile);
+    private void loadShopsInFile(Path path) {
+        if (Files.isDirectory(path)) {
+            try (var stream = Files.newDirectoryStream(
+                    path,
+                    p -> YAML_MATCHER.matches(p.getFileName()) || Files.isDirectory(p)
+            )) {
+                stream.forEach(this::loadShopsInFile);
+            } catch (IOException e) {
+                this.getLogger().warning("Cannot read files in directory " + path.getFileName());
             }
             return;
         }
-        if (file.isFile()) {
-            loadShop(file);
+        if (Files.isRegularFile(path)) {
+            loadShop(path);
             return;
         }
-        this.getLogger().warning("Cannot load shops in " + file.getName());
+        this.getLogger().warning("Cannot read files in file " + path.getFileName());
     }
 
-    private void loadShop(File file) {
+    private void loadShop(Path path) {
         var loader = YamlConfigurationLoader.builder()
-                .file(file)
+                .path(path)
                 .defaultOptions(opts -> opts.serializers(builder ->
                                 builder.register(ItemStack.class, ItemStackSerializer.INSTANCE)
                                         .registerAll(
@@ -96,7 +99,7 @@ public final class RokuShop extends JavaPlugin {
                 shops.putAll(shopsInFile);
             }
         } catch (ConfigurateException e) {
-            this.getLogger().log(Level.SEVERE, "Unable to load configuration " + file.getName(), e);
+            this.getLogger().log(Level.SEVERE, "Unable to load configuration " + path.getFileName(), e);
         }
     }
 
