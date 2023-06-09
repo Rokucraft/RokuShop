@@ -1,7 +1,7 @@
 name: RokuShop
 version: '${version}'
 main: com.rokucraft.rokushop.RokuShop
-api-version: 1.18
+api-version: 1.17
 authors: [ Aikovdp ]
 description: A shop plugin for Rokucraft
 website: https://www.rokucraft.com
