@@ -73,10 +73,15 @@ public class ShopGUI {
         ItemStack displayedItem = new ItemStack(item);
         displayedItem.editMeta(meta -> {
             List<Component> lore = meta.lore();
-            if (lore == null) lore = new ArrayList<>();
-            lore.add(Component.empty());
+            if (lore == null) {
+                lore = new ArrayList<>();
+            }
+            if (!lore.isEmpty()) {
+                lore.add(Component.empty());
+            }
             lore.add(
                     Component.text()
+                            .append(Component.text("Cost: ", NamedTextColor.LIGHT_PURPLE))
                             .append(Component.text(economy.currencyNameSingular(), NamedTextColor.GOLD))
                             .append(Component.text(shopItem.price(), NamedTextColor.WHITE))
                             .decoration(TextDecoration.ITALIC, false)
