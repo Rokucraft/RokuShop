@@ -1,9 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id("xyz.jpenilla.run-paper") version "1.0.6"
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id("xyz.jpenilla.run-paper") version "2.1.0"
 }
 
 group = 'com.rokucraft'
@@ -35,18 +33,14 @@ dependencies {
     implementation("org.incendo.interfaces:interfaces-paper:1.0.0-SNAPSHOT")
 }
 
-task relocateShadowJar(type: ConfigureShadowRelocation) {
-    target = tasks.shadowJar
-    prefix = "${rootProject.group}.${rootProject.name.toLowerCase()}.libs"
-}
-
 tasks {
     build {
         dependsOn(shadowJar)
     }
 
     shadowJar {
-        dependsOn(tasks.relocateShadowJar)
+        enableRelocation(true)
+        relocationPrefix = "${project.group}.${project.name}.libs"
     }
 
     runServer {
