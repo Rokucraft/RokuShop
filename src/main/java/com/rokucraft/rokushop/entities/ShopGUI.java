@@ -90,7 +90,7 @@ public class ShopGUI {
                     Player player = context.viewer().player();
                     EconomyResponse res = economy.withdrawPlayer(player, shopItem.price());
                     if (!res.transactionSuccess()) {
-                        player.sendMessage(Component.text("You do not have enough money to purchase this", NamedTextColor.RED));
+                        player.sendMessage(Component.text("You do not have enough money to purchase this!", NamedTextColor.RED));
                         return;
                     }
                     player.sendMessage(
