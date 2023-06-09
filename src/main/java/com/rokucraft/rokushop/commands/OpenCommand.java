@@ -26,6 +26,7 @@ public class OpenCommand {
         shopArgument = manager.argumentBuilder(Shop.class, "shop").build();
         playerArgument = PlayerArgument.optional("player");
         command = builder.literal("open", ArgumentDescription.of("Open a shop"))
+                .permission("rokushop.open")
                 .argument(shopArgument, ArgumentDescription.of("The shop to open"))
                 .argument(playerArgument, ArgumentDescription.of("The player you want to show the shop to"))
                 .handler(this::execute)
