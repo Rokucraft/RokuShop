@@ -34,8 +34,12 @@ public class ItemStackSerializer implements TypeSerializer<ItemStack> {
         var meta = item.getItemMeta();
         var metaNode = node.node(META);
         meta.displayName(metaNode.node(DISPLAY_NAME).get(Component.class));
-        meta.lore(metaNode.node(LORE).getList(Component.class));
-        meta.setCustomModelData(metaNode.node(CUSTOM_MODEL_DATA).getInt());
+        if (!metaNode.node(LORE).virtual()) {
+            meta.lore(metaNode.node(LORE).getList(Component.class));
+        }
+        if (!metaNode.node(CUSTOM_MODEL_DATA).virtual()) {
+            meta.setCustomModelData(metaNode.node(CUSTOM_MODEL_DATA).getInt());
+        }
         meta.setUnbreakable(metaNode.node(UNBREAKABLE).getBoolean());
         meta.addItemFlags(metaNode.node(ITEM_FLAGS).get(ItemFlag[].class));
         item.setItemMeta(meta);
