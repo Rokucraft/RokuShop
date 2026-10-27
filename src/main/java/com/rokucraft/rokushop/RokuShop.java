@@ -1,10 +1,7 @@
 package com.rokucraft.rokushop;
 
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.paper.PaperCommandManager;
 import com.rokucraft.rokushop.commands.OpenCommand;
 import com.rokucraft.rokushop.commands.ReloadCommand;
-import com.rokucraft.rokushop.commands.parsers.ShopParser;
 import com.rokucraft.rokushop.entities.Shop;
 import com.rokucraft.rokushop.serializers.ItemStackSerializer;
 import io.leangen.geantyref.TypeToken;
@@ -15,7 +12,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.incendo.interfaces.paper.PaperInterfaceListeners;
+import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
@@ -26,7 +25,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public final class RokuShop extends JavaPlugin {
-    private PaperCommandManager<CommandSender> manager;
+    private LegacyPaperCommandManager<CommandSender> manager;
     private static Economy econ;
     private Map<String, Shop> shops;
     private static final PathMatcher YAML_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.{yml,yaml}");
@@ -41,19 +40,19 @@ public final class RokuShop extends JavaPlugin {
         }
 
         try {
-            manager = PaperCommandManager.createNative(this, CommandExecutionCoordinator.simpleCoordinator());
-            manager.registerBrigadier();
+            manager = LegacyPaperCommandManager.createNative(this, ExecutionCoordinator.simpleCoordinator());
         } catch (Exception e) {
             this.getLogger().severe("Failed to initialize the command manager! Disabling...");
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        manager.parserRegistry().registerParserSupplier(TypeToken.get(Shop.class), options -> new ShopParser<>(this));
+        if (manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+            manager.registerBrigadier();
+        }
         var builder = manager.commandBuilder("rokushop");
-        manager.command(new OpenCommand(builder, manager, this).command());
+        manager.command(new OpenCommand(builder, this).command());
         manager.command(new ReloadCommand(builder, this).command());
         loadShops();
-        PaperInterfaceListeners.install(this);
     }
 
     public void loadShops() {
