@@ -1,5 +1,7 @@
 package com.rokucraft.rokushop.entities;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
@@ -19,14 +21,23 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ShopGUI {
     private final ChestGui gui;
     private final Economy economy;
     private static final ItemStack previous =
-            createSkull(Component.text("Previous", NamedTextColor.YELLOW), "MHF_ArrowLeft");
+            createSkull(
+                    Component.text("Previous", NamedTextColor.YELLOW),
+                    "MHF_ArrowLeft",
+                    "a68f0b64-8d14-4000-a95f-4b9ba14f8df9",
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWNhZDE5M2UyMjI2OTcxZWQ5NTMwMmRiYTQzMzQzOGJlNDY0NGZiYWI1ZWJmODE4MDU0MDYxNjY3ZmJlMiJ9fX0=");
     private static final ItemStack next =
-            createSkull(Component.text("Next", NamedTextColor.YELLOW), "MHF_ArrowRight");
+            createSkull(
+                    Component.text("Next", NamedTextColor.YELLOW),
+                    "MHF_ArrowRight",
+                    "50c8510b-5ea0-4d60-be9a-7d542d6cd156",
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDM0ZWYwNjM4NTM3MjIyYjIwZjQ4MDY5NGRhZGMwZjg1ZmJlMDc1OWQ1ODFhYTdmY2RmMmU0MzEzOTM3NzE1OCJ9fX0=");
     public ShopGUI(Shop shop, Economy economy) {
         this.economy = economy;
 
@@ -72,11 +83,14 @@ public class ShopGUI {
         gui.update();
     }
 
-    private static ItemStack createSkull(Component name, String ownerName) {
+    // The textures are hardcoded so building the heads never needs a Mojang profile lookup
+    private static ItemStack createSkull(Component name, String profileName, String uuid, String texturesValue) {
+        PlayerProfile profile = Bukkit.createProfile(UUID.fromString(uuid), profileName);
+        profile.setProperty(new ProfileProperty("textures", texturesValue));
         var head = new ItemStack(Material.PLAYER_HEAD);
         head.editMeta(SkullMeta.class, skullMeta -> {
             skullMeta.displayName(name);
-            skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(ownerName));
+            skullMeta.setPlayerProfile(profile);
         });
         return head;
     }
