@@ -6,7 +6,7 @@ import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHold
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import com.github.stefvanschie.inventoryframework.pane.component.PagingButtons;
 import com.github.stefvanschie.inventoryframework.pane.util.Slot;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -54,33 +54,14 @@ public class ShopGUI {
         );
         gui.addPane(Slot.fromXY(1, 1), pages);
 
-        StaticPane navigation = new StaticPane(9, 1);
-        GuiItem backward = new GuiItem(previous, event -> {
-            if (pages.getPage() > 0) {
-                pages.setPage(pages.getPage() - 1);
-                updateNavigation(pages, navigation);
-            }
-        });
-        GuiItem forward = new GuiItem(next, event -> {
-            if (pages.getPage() < pages.getPages() - 1) {
-                pages.setPage(pages.getPage() + 1);
-                updateNavigation(pages, navigation);
-            }
-        });
-        navigation.addItem(backward, 0, 0);
-        navigation.addItem(forward, 8, 0);
+        PagingButtons navigation = new PagingButtons(9, pages);
+        navigation.setBackwardButton(new GuiItem(previous));
+        navigation.setForwardButton(new GuiItem(next));
         gui.addPane(Slot.fromXY(0, 5), navigation);
-        updateNavigation(pages, navigation);
     }
 
     public void open(Player player) {
         gui.show(player);
-    }
-
-    private void updateNavigation(PaginatedPane pages, StaticPane navigation) {
-        navigation.getItem(Slot.fromXY(0, 0)).setVisible(pages.getPage() > 0);
-        navigation.getItem(Slot.fromXY(8, 0)).setVisible(pages.getPage() < pages.getPages() - 1);
-        gui.update();
     }
 
     // The textures are hardcoded so building the heads never needs a Mojang profile lookup
