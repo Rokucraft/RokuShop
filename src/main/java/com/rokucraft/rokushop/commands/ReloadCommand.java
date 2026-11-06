@@ -1,10 +1,10 @@
 package com.rokucraft.rokushop.commands;
 
-import cloud.commandframework.Command;
 import com.rokucraft.rokushop.RokuShop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
+import org.incendo.cloud.Command;
 
 public class ReloadCommand {
     private final Command<CommandSender> command;
@@ -14,7 +14,7 @@ public class ReloadCommand {
                 .permission("rokushop.reload")
                 .handler(context -> {
                     plugin.loadShops();
-                    context.getSender().sendMessage(Component.text("Shops reloaded!", NamedTextColor.GREEN));
+                    context.sender().sendMessage(Component.text("Shops reloaded!", NamedTextColor.GREEN));
                 })
                 .build();
     }

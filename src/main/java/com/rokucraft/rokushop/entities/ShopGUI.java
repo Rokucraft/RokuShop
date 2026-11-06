@@ -1,5 +1,13 @@
 package com.rokucraft.rokushop.entities;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
+import com.github.stefvanschie.inventoryframework.pane.component.PagingButtons;
+import com.github.stefvanschie.inventoryframework.pane.util.Slot;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -10,65 +18,65 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.incendo.interfaces.core.click.ClickHandler;
-import org.incendo.interfaces.core.transform.types.PaginatedTransform;
-import org.incendo.interfaces.core.util.Vector2;
-import org.incendo.interfaces.paper.PlayerViewer;
-import org.incendo.interfaces.paper.element.ItemStackElement;
-import org.incendo.interfaces.paper.pane.ChestPane;
-import org.incendo.interfaces.paper.type.ChestInterface;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ShopGUI {
-    private final ChestInterface shopInterface;
+    private final ChestGui gui;
     private final Economy economy;
     private static final ItemStack previous =
-            createSkull(Component.text("Previous", NamedTextColor.YELLOW), "MHF_ArrowLeft");
+            createSkull(
+                    Component.text("Previous", NamedTextColor.YELLOW),
+                    "MHF_ArrowLeft",
+                    "a68f0b64-8d14-4000-a95f-4b9ba14f8df9",
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjdhYWNhZDE5M2UyMjI2OTcxZWQ5NTMwMmRiYTQzMzQzOGJlNDY0NGZiYWI1ZWJmODE4MDU0MDYxNjY3ZmJlMiJ9fX0=");
     private static final ItemStack next =
-            createSkull(Component.text("Next", NamedTextColor.YELLOW), "MHF_ArrowRight");
+            createSkull(
+                    Component.text("Next", NamedTextColor.YELLOW),
+                    "MHF_ArrowRight",
+                    "50c8510b-5ea0-4d60-be9a-7d542d6cd156",
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDM0ZWYwNjM4NTM3MjIyYjIwZjQ4MDY5NGRhZGMwZjg1ZmJlMDc1OWQ1ODFhYTdmY2RmMmU0MzEzOTM3NzE1OCJ9fX0=");
     public ShopGUI(Shop shop, Economy economy) {
         this.economy = economy;
 
-        var transform = new PaginatedTransform<ItemStackElement<ChestPane>, ChestPane, PlayerViewer>(
-                Vector2.at(1, 1),
-                Vector2.at(7, 4),
+        gui = new ChestGui(6, ComponentHolder.of(shop.displayName()));
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
+        gui.setOnGlobalDrag(event -> event.setCancelled(true));
+
+        PaginatedPane pages = new PaginatedPane(7, 4);
+        pages.populateWithGuiItems(
                 shop.items()
                         .stream()
-                        .map(this::shopElement)
+                        .map(this::shopItem)
                         .toList()
         );
-        transform.backwardElement(
-                Vector2.at(0, 5),
-                t -> ItemStackElement.of(previous, c -> t.previousPage())
-        );
-        transform.forwardElement(
-                Vector2.at(8, 5),
-                t -> ItemStackElement.of(next, c -> t.nextPage())
-        );
-        shopInterface = ChestInterface.builder()
-                .clickHandler(ClickHandler.cancel())
-                .rows(6)
-                .title(shop.displayName())
-                .addReactiveTransform(transform)
-                .build();
+        gui.addPane(Slot.fromXY(1, 1), pages);
+
+        PagingButtons navigation = new PagingButtons(9, pages);
+        navigation.setBackwardButton(new GuiItem(previous));
+        navigation.setForwardButton(new GuiItem(next));
+        gui.addPane(Slot.fromXY(0, 5), navigation);
     }
 
     public void open(Player player) {
-        shopInterface.open(PlayerViewer.of(player));
+        gui.show(player);
     }
 
-    private static ItemStack createSkull(Component name, String ownerName) {
+    // The textures are hardcoded so building the heads never needs a Mojang profile lookup
+    private static ItemStack createSkull(Component name, String profileName, String uuid, String texturesValue) {
+        PlayerProfile profile = Bukkit.createProfile(UUID.fromString(uuid), profileName);
+        profile.setProperty(new ProfileProperty("textures", texturesValue));
         var head = new ItemStack(Material.PLAYER_HEAD);
         head.editMeta(SkullMeta.class, skullMeta -> {
             skullMeta.displayName(name);
-            skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(ownerName));
+            skullMeta.setPlayerProfile(profile);
         });
         return head;
     }
 
-    private ItemStackElement<ChestPane> shopElement(ShopItem shopItem) {
+    private GuiItem shopItem(ShopItem shopItem) {
         ItemStack item = shopItem.item();
         ItemStack displayedItem = new ItemStack(item);
         displayedItem.editMeta(meta -> {
@@ -89,10 +97,10 @@ public class ShopGUI {
             );
             meta.lore(lore);
         });
-        return new ItemStackElement<>(
+        return new GuiItem(
                 displayedItem,
-                context -> {
-                    Player player = context.viewer().player();
+                event -> {
+                    if (!(event.getWhoClicked() instanceof Player player)) return;
                     EconomyResponse res = economy.withdrawPlayer(player, shopItem.price());
                     if (!res.transactionSuccess()) {
                         player.sendMessage(Component.text("You do not have enough money to purchase this!", NamedTextColor.RED));
